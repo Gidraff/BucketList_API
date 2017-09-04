@@ -25,7 +25,7 @@ class BucketlistTestCase(unittest.TestCase):
 
     def registration(self):
         """Register a user"""
-        response = self.client().post(
+        response = self.client.post(
             '/auth/register/',
             data=self.user,
             content_type='application/json'
@@ -41,6 +41,8 @@ class BucketlistTestCase(unittest.TestCase):
 
     def test_bucketlist_creation(self):
         """Test if bucketlist has been created"""
+        self.registration()
+        self.login()
         res = self.client.post('/bucketlists/', 
                                 data=self.bucketlist,
                                 content_type='application/json')
@@ -50,6 +52,9 @@ class BucketlistTestCase(unittest.TestCase):
         """
         Test if an API can return all bucketlists
         """
+        self.registration()
+        self.login()
+
         res = self.client.post(
             '/bucketlists/', 
             data=self.bucketlist,
@@ -60,11 +65,14 @@ class BucketlistTestCase(unittest.TestCase):
 
     def test_bucketlist_can_be_edited(self):
         """Test if bucketlis can be updated"""
+        self.registration()
+        self.login()
+
         res = self.client.post(
             '/bucketlists/', data={
             'title': 'Go to',
             'description': 'Nort pole for weekened'
-        })
+            },content_type='application/json' )
         self.assertEqual(201, res.status_code)
         rev = self.client.put(
             '/bucketlists/1', 
@@ -79,6 +87,9 @@ class BucketlistTestCase(unittest.TestCase):
         """Test if bucketlist can get a specific
             bucketlist using it's id
         """
+        self.registration()
+        self.login()
+
         res = self.client.post(
             '/bucketlists/', 
             data=self.bucketlist,
@@ -87,6 +98,7 @@ class BucketlistTestCase(unittest.TestCase):
         self.assertEqual(201, res.status_code)
         result_in_json = json.loads(
             res.data.decode('utf-8'))
+
         rev = self.client.get(
             '/bucketlists/{}'.format(
                 result_in_json['id']))
@@ -95,6 +107,9 @@ class BucketlistTestCase(unittest.TestCase):
 
     def test_api_can_delete_bucketlist(self):
         """Test if a bucketlist can be deleted"""
+        self.registration()
+        self.login()
+
         result = self.client.post(
             '/bucketlists/', data={
                 'title': 'travel',
