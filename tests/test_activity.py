@@ -33,40 +33,51 @@ class ActivityTestCase(unittest.TestCase):
     def register(self):
         """Register a user"""
         response = self.client().post(
-            '/auth/register/', data=self.user)
+            '/auth/register/', 
+            data=self.user,
+            content_type='application/json')
     
-    def login(sellf):
+    def login(self):
         """logins a user"""
         return self.client.post(
-            '/auth/login', data=self.user,
-             follow_redirects=True)
+            '/auth/login', 
+            data=self.user,
+            content_type='application/json')
 
     def test_create_bucketlist(self):
         """Creates bucketlist"""
         response = self.client.post(
-            '/bucketlists/', data=self.bucketlist)
+            '/bucketlists/', 
+            data=self.bucketlist,
+            content_type='application/json')
     # post
     def test_activity_was_be_created(self):
         """Test if an activity was created"""
         res = self.client.post(
-            '/bucketlists/', data=self.bucketlist)
+            '/bucketlists/', 
+            data=self.bucketlist,
+            content_type='application/json')
         self.assertEqual(201, res.status_code)
 
         # test for activity creation
         res = self.client.post(
             '/bucketlists/1/activities', 
-            data=self.activity)
+            data=self.activity,
+            content_type='application/json')
         self.assertEqual(201, res.status_code)
 
     def test_activity_exist(self):
         """Test if an activity can be retreived"""
         res = self.client.post(
-            '/bucketlists/', data=self.bucketlist)
+            '/bucketlists/', 
+            data=self.bucketlist,
+            content_type='application/json')
         self.assertEqual(201, res.status_code)
 
         result = self.client.post(
             '/bucketlists/1/activities', 
-            data=self.activity)
+            data=self.activity,
+            content_type='application/json')
         self.assertEqual(201, result.status_code)
 
         rev = self.client.get(
@@ -78,18 +89,21 @@ class ActivityTestCase(unittest.TestCase):
     def test_activity_can_be_edited(self):
         """Test if an activity can be edited"""
         res = self.client.post(
-            '/bucketlists/', data=self.bucketlist)
+            '/bucketlists/', 
+            data=self.bucketlist,
+            content_type='application/json')
         self.assertEqual(201, res.status_code)
 
         result = self.client.post(
             '/bucketlists/1/activities', 
-            data=self.activity)
+            data=self.activity,
+            content_type='application/json')
         self.assertEqual(201, result.status_code)
 
         rev = self.client.put(
             '/bucketlists/1/activities/1', data={
                 'title': 'learn ways of asians'
-            })
+            }, content_type='application/json')
         self.assertEqual(200, rev.status_code)
 
         result = self.client.get(
@@ -100,11 +114,13 @@ class ActivityTestCase(unittest.TestCase):
     def test_delete_activity(self):
         """Test if an activity can be reviewed"""
         result = self.client.post(
-            '/bucketlists/', data=self.bucketlist)
+            '/bucketlists/', 
+            data=self.bucketlist,
+            content_type='application/json')
         res = self.client.post(
             '/bucketlists/1/activities', data={
                 'activity': 'learn japaness'
-            })
+            }, content_type='application/json')
         self.assertEqual(201, res.status_code)
 
         rev = self.client.delete(
