@@ -27,21 +27,23 @@ class BucketlistTestCase(unittest.TestCase):
         """Register a user"""
         response = self.client().post(
             '/auth/register/',
-            data=self.user
+            data=self.user,
+            content_type='application/json'
             )
 
     def login(self):
         """logins user"""
         return self.client.post(
             '/auth/login', 
-            data=self.user, 
-            follow_redirects=True
+            data=self.user,
+            content_type='application/json'
             )
 
     def test_bucketlist_creation(self):
         """Test if bucketlist has been created"""
         res = self.client.post('/bucketlists/', 
-                                data=self.bucketlist)
+                                data=self.bucketlist,
+                                content_type='application/json')
         self.assertEqual(201, res.status_code)
 
     def test_api_can_get_all_bucketlist(self):
@@ -49,7 +51,9 @@ class BucketlistTestCase(unittest.TestCase):
         Test if an API can return all bucketlists
         """
         res = self.client.post(
-            '/bucketlists/', data=self.bucketlist)
+            '/bucketlists/', 
+            data=self.bucketlist,
+            content_type='application/json')
         self.assertEqual(201, res.status_code)
         rev = self.client.get('/bucketlists/')
         self.assertEqual(200, rev.status_code)
@@ -63,10 +67,12 @@ class BucketlistTestCase(unittest.TestCase):
         })
         self.assertEqual(201, res.status_code)
         rev = self.client.put(
-            '/bucketlists/1', data={
+            '/bucketlists/1', 
+            data={
             'title': 'Go to hawaii',
             'descrption': 'go for vacation'
-        })
+        }, content_type='application/json'
+        )
         self.assertEqual(200, rev.status_code)
 
     def test_api_can_get_bucketlist_by_id(self):
@@ -74,7 +80,10 @@ class BucketlistTestCase(unittest.TestCase):
             bucketlist using it's id
         """
         res = self.client.post(
-            '/bucketlists/', data=self.bucketlist)
+            '/bucketlists/', 
+            data=self.bucketlist,
+            content_type='application/json'
+            )
         self.assertEqual(201, res.status_code)
         result_in_json = json.loads(
             res.data.decode('utf-8'))
