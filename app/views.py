@@ -1,6 +1,7 @@
 """Module that contains all endpoints"""
 #modules and packages for import
 from flask import jsonify, request, render_template
+from
 from app import db, create_app
 
 from app.models import User, Bucketlist, Activity
@@ -17,7 +18,39 @@ def index():
 @app.route('/auth/register', methods=['POST'])
 def user_registration():
     """function that registers the user"""
-    pass
+    user_data = request.get_json()
+    user = User.query.filter_by(email=user_data.get('email')).first
+    if not user:
+        try:
+            user = User(
+                username=user_data.get('username'),
+                email=user_data.get('email')
+                password=user_data('password')
+            )
+            # inserts user
+            db.session.add(user)
+            db.session.commit()
+
+            #generate token
+            token = g.user.generate_auth_token()
+            responseObject= {
+                'status': 'success',
+                'message': 'You were successfully registered',
+                'token': token
+            }
+            return jsonify(responseObject), 201
+        except Exception as e:
+            responseObject = {
+                'status': 'fail',
+                'message': 'please try again!'
+            }
+            return jsonify(responseObject), 401
+    else:
+        responseObject = {
+            'status': 'fail',
+            'message': 'User already exist please Log in.'
+        }
+        return jsonify(responseObject), 202
 
 @app.route('/auth/login', methods=['POST'])
 def user_login():
