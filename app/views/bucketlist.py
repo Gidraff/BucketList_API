@@ -4,7 +4,6 @@ from decorator import login_required
 from ..models import db, Bucketlist
 from . import bucketlist_blueprint
 
-
 class BucketListView(MethodView):
     """
     Class that handles bucketlist manipulation

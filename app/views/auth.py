@@ -20,7 +20,7 @@ class RegistrationApiView(MethodView):
                 user = User(username=user_data.get('username'),
                             email=user_data.get('email'),
                             password=user_data.get('password'))
-                user = user
+            user = user
                 # saves user
                 user.save()
                 responseObject= {
