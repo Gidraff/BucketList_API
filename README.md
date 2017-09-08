@@ -11,9 +11,9 @@ This is a Bucket List Application. It lets you keep track of activities that you
 | `GET /bucketlists/<id>`| Get single bucket list | FALSE |
 | `PUT /bucketlists/<id>/`| Update this bucket list | FALSE |
 | `DELETE /bucketlists/<id>`| Delete this single bucket list | FALSE |
-| `POST /bucketlists/\<id>/activities/`| Create a new item in bucket list | FALSE |
-| `PUT /bucketlists/\<id>/activities/<activity_id>`| Update a bucket list item | FALSE |
-| `DELETE /bucketlists/\<id>/activities/<activity_id>`| Delete an item in a bucket list | FALSE |
+| `POST /bucketlists/<id>/activities/`| Create a new activity in bucket list | FALSE |
+| `PUT /bucketlists/<id>/activities/<activity_id>`| Update a bucket list activity | FALSE |
+| `DELETE /bucketlists/<id>/activities/<activity_id>`| Delete an activity from a bucket list | FALSE |
 
 #### HTTP verbs or methods used in the Bucket List Api :
 
@@ -35,7 +35,7 @@ This is a Bucket List Application. It lets you keep track of activities that you
 | `5xx` | Server error |
 
 
-#### Bucket List Api Features:
+#### Bucket List Api(CRUD) Features:
 
 * Register users
 * Login Users
@@ -75,7 +75,7 @@ To get started with BucketList App Api:
 * Run `pip install > requirements` to install all dependencies required by the app.
 * Run `python manage.py db init`, `python manage.py db migrate` and `python manage.py db upgrade` to setup the database up and running.
 
-Now to run the app, run `python run.py` . This will start up the server and you can proceed making with app.
+Now to run the app, run `python run.py` . This will start up the server and you can proceed using the app.
 
 The only thing left is for you to ENJOY!!
 
