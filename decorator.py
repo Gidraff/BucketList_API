@@ -1,8 +1,6 @@
 from flask import jsonify, request
 from app.models import User
-
 from functools import wraps
-
 
 def login_required(func):
 
