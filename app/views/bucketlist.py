@@ -1,5 +1,5 @@
 from flask.views import MethodView
-from flask import jsonify, request, g, current_user
+from flask import jsonify, request
 from decorator import login_required
 from ..models import db, Bucketlist
 from . import bucketlist_blueprint

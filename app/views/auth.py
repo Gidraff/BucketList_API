@@ -1,5 +1,5 @@
 from flask.views import MethodView
-from flask import jsonify, request, g
+from flask import jsonify, request
 from ..models import db, User, Bucketlist, Activity
 from . import auth_blueprint
 
@@ -20,7 +20,7 @@ class RegistrationApiView(MethodView):
                 user = User(username=user_data.get('username'),
                             email=user_data.get('email'),
                             password=user_data.get('password'))
-                g.user = user
+                user = user
                 # saves user
                 user.save()
                 responseObject= {
