@@ -18,7 +18,7 @@ This is a Bucket List Application. It lets you keep track of activities that you
 #### HTTP verbs or methods used in the Bucket List Api :
 
 | Methods(verbs) | Description |
-|:----------------|:-------------|-----------|
+|:----------------|:-------------|
 |`GET` | Retrieves a resource(s) |
 |`POST` | Creates a resource(s) |
 |`PUT` | Edits or creates an existing resource(s) |
