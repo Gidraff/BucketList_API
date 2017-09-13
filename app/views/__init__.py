@@ -1,8 +1,8 @@
 from flask import Blueprint
 
-# Instantiate Blueprint for auth blueprint
-auth_blueprint = Blueprint("auth", __name__)
-from . import auth
+# Instantiate Blueprint for users blueprint
+users_blueprint = Blueprint("users", __name__)
+from . import users
 
 
 # Instantiate Blueprint for bucketlist blueprint
@@ -11,9 +11,5 @@ from . import bucketlist
 
 
 # Instantiate Blueprint for bucketlist blueprint
-activity_blueprint = Blueprint("activity", __name__)
-from . import bucketlist_activity
-
-
-
-
+item_blueprint = Blueprint("item", __name__)
+from . import bucketlist_item
