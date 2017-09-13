@@ -8,17 +8,18 @@ from flask import current_app
 
 db = SQLAlchemy()
 
+
 class User(db.Model):
     """creates a table for the user"""
 
     __tablename__ = 'users'
-    id =db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(300), unique=False)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(300), unique=True)
     password = db.Column(db.String(300))
     email = db.Column(db.String(300), unique=True)
     bucketlists = db.relationship(
-        "Bucketlist", backref="users", 
-        lazy="dynamic", cascade='all, delete-orphan')
+        "Bucketlist", backref="users",
+        lazy="dynamic", order_by="Bucketlist.id", cascade='all, delete-orphan')
 
     def __init__(self, username, email, password):
         """Initialize a table by"""
@@ -56,37 +57,37 @@ class User(db.Model):
     def decode_token(token):
         """Decode the access token from the authorization """
         try:
-            payload =  jwt.decode(token, current_app.config['SECRET'])
+            payload = jwt.decode(token, current_app.config['SECRET'])
             return payload['sub']
         except jwt.ExpiredSignatureError:
             return "Expired token please login to get a new one"
         except jwt.InvalidTokenError:
             return "Invalid token.Please Register or Login"
-    
+
     def save(self):
         # saves a new user or edited user
         db.session.add(self)
         db.session.commit()
 
-
     def __repr__(self):
-        #return formatted data
+        # return formatted data
         return "<User: {}>".format(self.username)
+
 
 class Bucketlist(db.Model):
     """Create a table for bucketlist"""
     __tablename__ = 'bucketlists'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     title = db.Column(db.String(300), unique=False)
     description = db.Column(db.String(300), unique=False)
     date_created = db.Column(
         db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(
         db.DateTime, default=db.func.current_timestamp())
-    created_by= db.Column(db.Integer, db.ForeignKey(User.id))
-    activities = db.relationship(
-        "Activity", cascade="delete", 
+    created_by = db.Column(db.Integer, db.ForeignKey(User.id))
+    items = db.relationship(
+        "Item", order_by="Item.bucketlist_id", cascade="delete",
         backref="bucketlists", lazy="dynamic")
 
     def __init__(self, title, description, created_by):
@@ -101,11 +102,12 @@ class Bucketlist(db.Model):
         """saves new bucketlist or edited bucketlist"""
         db.session.add(self)
         db.session.commit()
-    
+
     def delete(self):
-        """deletes bucketlist"""   
+        """deletes bucketlist"""
         db.session.delete(self)
         db.session.commit()
+        return True
 
     @staticmethod
     def get_all(user_id):
@@ -113,41 +115,66 @@ class Bucketlist(db.Model):
         return Bucketlist.query.filter_by(created_by=user_id)
 
     def __repr__(self):
-        #return formatted onject
+        # return formatted onject
         return "<Bucketlist: {}>".format(self.title)
 
-class Activity(db.Model):
-    """Creates a table for activities"""
-    __tablename__ = 'activities'
 
-    id = db.Column(db.Integer, primary_key=True)
-    activity = db.Column(db.String(150), unique=True)
+class Item(db.Model):
+    """Creates a table for items"""
+    __tablename__ = 'items'
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    item = db.Column(db.String(150), unique=True, nullable=False)
     bucketlist_id = db.Column(
-        db.Integer, db.ForeignKey('bucketlists.id'))
+        db.Integer, db.ForeignKey(Bucketlist.id))
     date_created = db.Column(
-        db.DateTime, default=db.func.current_timestamp())
+        db.DateTime, default=datetime.now, nullable=False)
     date_modified = db.Column(
-        db.DateTime, default=db.func.current_timestamp())
-    done = db.Column(db.Boolean, default=False)
+        db.DateTime, default=datetime.now, nullable=False)
+    done = db.Column(db.Boolean, default=False, nullable=False)
 
-    def __init__(self, activity, bucketlist_id):
-        self.activity = activity
+    def __init__(self, item, bucketlist_id):
+        self.item = item
         self.bucketlist_id = bucketlist_id
 
     def save(self):
-        """saves new activity or edited bucketlist"""
+        """saves new item or edited bucketlist"""
         db.session.add(self)
         db.session.commit()
 
     def delete(self):
-        """deletes a given bucketlist"""
-        db.session.delet(self)
+        """deletes a given item in bucketlist"""
+        db.session.delete(self)
         db.session.commit()
 
     @staticmethod
-    def get_all(bucketlist_id): 
-        """get all activityt"""
-        return Activity.query.filter_by(bucketlist_id=bucketlist_id)
+    def get_all(bucketlist_id):
+        """get all itemt"""
+        return Item.query.filter_by(bucketlist_id=bucketlist_id).all()
 
     def __repr__(self):
-        return "<Activity: {}>".format(self.activity)
+        return "<Item: {}>".format(self.item)
+
+
+class BlackList(db.Model):
+    """creates a table to handle token blacklist logout"""
+    __tablename__ = "blacklist"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    token = db.Column(db.String(500), unique=True, nullable=False)
+    blacklisted_on = db.Column(db.DateTime, default=datetime.now,
+                               nullable=False)
+
+    def __init__(self, token):
+        """Initialize blacklist by token"""
+        self.token = token
+        self.blacklisted_on = datetime.datetime.now()
+
+    def save(self):
+        """saves token in the blacklist table"""
+        db.session.add(self)
+        db.session.commit()
+
+    def __repr__(self):
+        """returns spring representation of blacklits object"""
+        return '<id: token: {}'.format(self.token)
