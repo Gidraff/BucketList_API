@@ -2,6 +2,7 @@ import unittest
 import json
 from app import db, create_app
 
+
 class BucketlistTestCase(unittest.TestCase):
     """Class for bucketlist test cases"""
 
@@ -29,23 +30,23 @@ class BucketlistTestCase(unittest.TestCase):
             '/auth/register/',
             data=self.user,
             content_type='application/json'
-            )
+        )
 
     def login(self):
         """logins user"""
         return self.client.post(
-            '/auth/login', 
+            '/auth/login',
             data=self.user,
             content_type='application/json'
-            )
+        )
 
     def test_bucketlist_creation(self):
         """Test if bucketlist has been created"""
         self.registration()
         self.login()
-        res = self.client.post('/bucketlists/', 
-                                data=self.bucketlist,
-                                content_type='application/json')
+        res = self.client.post('/bucketlists/',
+                               data=self.bucketlist,
+                               content_type='application/json')
         self.assertEqual(201, res.status_code)
 
     def test_api_can_get_all_bucketlist(self):
@@ -56,7 +57,7 @@ class BucketlistTestCase(unittest.TestCase):
         self.login()
 
         res = self.client.post(
-            '/bucketlists/', 
+            '/bucketlists/',
             data=self.bucketlist,
             content_type='application/json')
         self.assertEqual(201, res.status_code)
@@ -70,16 +71,16 @@ class BucketlistTestCase(unittest.TestCase):
 
         res = self.client.post(
             '/bucketlists/', data={
-            'title': 'Go to',
-            'description': 'Nort pole for weekened'
-            },content_type='application/json' )
+                'title': 'Go to',
+                'description': 'Nort pole for weekened'
+            }, content_type='application/json')
         self.assertEqual(201, res.status_code)
         rev = self.client.put(
-            '/bucketlists/1', 
+            '/bucketlists/1',
             data={
-            'title': 'Go to hawaii',
-            'descrption': 'go for vacation'
-        }, content_type='application/json'
+                'title': 'Go to hawaii',
+                'descrption': 'go for vacation'
+            }, content_type='application/json'
         )
         self.assertEqual(200, rev.status_code)
 
@@ -91,10 +92,10 @@ class BucketlistTestCase(unittest.TestCase):
         self.login()
 
         res = self.client.post(
-            '/bucketlists/', 
+            '/bucketlists/',
             data=self.bucketlist,
             content_type='application/json'
-            )
+        )
         self.assertEqual(201, res.status_code)
         result_in_json = json.loads(
             res.data.decode('utf-8'))
@@ -122,10 +123,10 @@ class BucketlistTestCase(unittest.TestCase):
 
         rev = self.client.get('/bucketlists/1')
         self.assertEqual(404, rev.status_code)
-    #delete
+    # delete
+
     def tearDown(self):
         """Tear down all initialized variables"""
         with self.app.app_context():
             db.session.close()
             db.drop_all()
-
