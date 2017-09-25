@@ -11,11 +11,11 @@ install:
 services:
   - postgresql
 
-# env:
-#   global:
-#     - SECRET = os.getenv('SECRET')
-#     - SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
-#     - SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/test_db'
+env:
+  global:
+    - export SECRET="THISis@secret54321"
+    - export APP_SETTINGS="testing"
+    - export DATABASE_URL="postgresql://localhost/test_db"
 
 before_script:
   # - createdb test_test_db
