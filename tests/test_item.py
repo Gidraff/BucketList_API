@@ -30,6 +30,8 @@ class itemTestCase(unittest.TestCase):
 
         with self.app.app_context():
             """Initialize  database."""
+            db.session.close()
+            db.drop_all()
             db.create_all()
 
     def register(self):
@@ -164,9 +166,3 @@ class itemTestCase(unittest.TestCase):
             '/bucketlists/1/items/1/',
             headers={"Authorization": token['access_token']})
         self.assertEqual(404, result.status_code)
-
-    def tearDown(self):
-        """Tear down setup fixtures."""
-        with self.app.app_context():
-            db.session.remove()
-            db.drop_all()

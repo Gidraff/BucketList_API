@@ -24,7 +24,7 @@ class BucketlistTestCase(unittest.TestCase):
         # binds app to the current_context
         with self.app.app_context():
             db.session.close()
-            # creates all tables
+            db.drop_all()
             db.create_all()
 
     def registration(self):
@@ -143,9 +143,3 @@ class BucketlistTestCase(unittest.TestCase):
                 "Authorization": data['access_token']},
             content_type='application/json')
         self.assertEqual(200, response.status_code)
-
-    def tearDown(self):
-        """Tear down setup."""
-        with self.app.app_context():
-            db.session.close()
-            db.drop_all()

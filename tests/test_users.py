@@ -20,6 +20,7 @@ class FlaskTest(unittest.TestCase):
 
         with self.app.app_context():
             db.session.close()
+            db.drop_all()
             db.create_all()
 
     # HELPER METHODS
@@ -172,10 +173,4 @@ class FlaskTest(unittest.TestCase):
         self.registration()
         token = json.loads(self.login().data.decode())['access_token']
         response = self.logout(token)
-        self.assertEqual(
-            200, response.status_code)
-
-    def tearDown(self):
-        """Tear down setup fixtures."""
-        with self.app.app_context():
-            db.drop_all()
+        self.assertEqual(200, response.status_code)
