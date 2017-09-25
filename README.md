@@ -12,9 +12,9 @@ This is a Bucket List Application. It lets you keep track of activities that you
 | `GET /bucketlists/<id>`| Get single bucket list | FALSE |
 | `PUT /bucketlists/<id>/`| Update this bucket list | FALSE |
 | `DELETE /bucketlists/<id>`| Delete this single bucket list | FALSE |
-| `POST /bucketlists/<id>/activities/`| Create a new activity in bucket list | FALSE |
-| `PUT /bucketlists/<id>/activities/<activity_id>`| Update a bucket list activity | FALSE |
-| `DELETE /bucketlists/<id>/activities/<activity_id>`| Delete an activity from a bucket list | FALSE |
+| `POST /bucketlists/<id>/items/`| Create a new activity in bucket list | FALSE |
+| `PUT /bucketlists/<id>/items/<item>`| Update a bucket list activity | FALSE |
+| `DELETE /bucketlists/<id>/items/<item>`| Delete an activity from a bucket list | FALSE |
 
 #### HTTP verbs or methods used in the Bucket List Api :
 
@@ -41,7 +41,7 @@ This is a Bucket List Application. It lets you keep track of activities that you
 * Register users
 * Login Users
 * Create and delete Bucket List
-* Add and delete Bucket List activities
+* Add and delete Bucket List items
 
 
 #### Feature Completed:
@@ -49,15 +49,17 @@ This is a Bucket List Application. It lets you keep track of activities that you
 * Register Users
 * Login Users
 * Create BucketList
+* Edit BucketList
+* Delete a BucketList
+* Add item
+* Edit item
+* delete item
+* Logout Users
 * Token Based Authentication
 
 #### Work in Progress [WIP]:
 
-* Edit BucketList
-* Delete a  BucketList
-* Add and delete activities
-* Edit activities
-* Logout Users
+
 * Pagination
 * Search
 * Hosting the app to Heroku
