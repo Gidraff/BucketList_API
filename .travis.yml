@@ -17,7 +17,7 @@ env:
     - SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/test_db'
 
 before_script:
-  - createdb test_api
+  - createdb test_db
   - python manage.py db init
   - python manage.py db migrate
   - python manage.py db upgrade
