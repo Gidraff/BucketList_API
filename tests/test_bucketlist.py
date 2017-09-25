@@ -132,7 +132,7 @@ class BucketlistTestCase(unittest.TestCase):
                 'description': 'travel asia'
             }),
             headers={
-                "Authorization": data['access_token']
+                "Authorization": str(data['access_token'])
             },
             content_type='application/json'
         )
