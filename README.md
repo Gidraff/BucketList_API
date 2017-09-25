@@ -1,6 +1,8 @@
 # Bucket List API
 [![Build Status](https://travis-ci.org/Gidraff/BucketList_API.svg?branch=api-endpoints)](https://travis-ci.org/Gidraff/BucketList_API)
 
+[![Coverage Status](https://coveralls.io/repos/github/Gidraff/BucketList_API/badge.svg?branch=master)](https://coveralls.io/github/Gidraff/BucketList_API?branch=master)
+
 This is a Bucket List Application. It lets you keep track of activities that you want to do before you bite the dust. It uses flask-sqlalchemy, flask and postgres database for backend.
 
 |  Endpoints  | Functionalities  |  Public Access |
