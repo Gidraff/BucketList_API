@@ -1,3 +1,4 @@
+sudo: true
 language: python
 python:
   - "3.6"
@@ -10,21 +11,20 @@ install:
 services:
   - postgresql
 
-env:
-  global:
-    - SECRET = os.getenv('SECRET')
-    - SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
-    - SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/test_db'
+# env:
+#   global:
+#     - SECRET = os.getenv('SECRET')
+#     - SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
+#     - SQLALCHEMY_DATABASE_URI = 'postgresql://localhost/test_db'
 
 before_script:
-  - createdb test_db
+  # - createdb test_test_db
   # - python manage.py db init
   # - python manage.py db migrate
   # - python manage.py db upgrade
-
-script: 
-  - nosetests  --with-coverage --cover-package=app
-
+  - psql -c "CREATE DATABASE test_db;" -U postgres
 after_success:
   coveralls
 # command to run tests
+script: 
+  - nosetests  --with-coverage --cover-package=app
