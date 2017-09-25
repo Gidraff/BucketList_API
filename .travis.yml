@@ -18,10 +18,6 @@ env:
     - export DATABASE_URL="postgresql://localhost/test_db"
 
 before_script:
-  # - createdb test_test_db
-  # - python manage.py db init
-  # - python manage.py db migrate
-  # - python manage.py db upgrade
   - psql -c "CREATE DATABASE test_db;" -U postgres
 after_success:
   coveralls
