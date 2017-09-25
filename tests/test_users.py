@@ -1,13 +1,15 @@
+"""Module that contains user Test cases."""
 import unittest
+import json
 from app import db
 from app import create_app
 
 
 class FlaskTest(unittest.TestCase):
-    """Test fof flask routes"""
+    """Test Cases for user."""
 
     def setUp(self):
-        """Test Case fixtures"""
+        """Test Case fixtures."""
         self.app = create_app('testing')
         self.client = self.app.test_client()
         self.user_data = {
@@ -23,49 +25,51 @@ class FlaskTest(unittest.TestCase):
     # HELPER METHODS
 
     def registration(self):
-        """Test API can register a user"""
+        """Test API can register a user."""
         response = self.client.post(
             '/auth/register/',
-            data=self.user_data,
+            data=json.dumps(self.user_data),
             content_type='application/json'
         )
+        return response
 
     def login(self):
+        """Login helper method."""
         return self.client.post(
-            '/auth/login',
-            data=self.user_data,
+            '/auth/login/',
+            data=json.dumps(self.user_data),
             content_type='application/json'
         )
 
-    def logout(self):
+    def logout(self, token):
+        """Logout helper method."""
         return self.client.post(
-            '/auth/logout',
+            '/auth/logout/',
+            headers={'Authorization': "{}".format(token)},
             content_type='application/json')
 
     def test_valid_user_registration(self):
-        """Test for user has been created"""
+        """Test if a user has been created."""
         response = self.client.post(
-            '/auth/register',
-            data=self.user_data,
+            '/auth/register/',
+            data=json.dumps(self.user_data),
             content_type='application/json')
         self.assertEqual(response.status_code, 201)
 
     def test_invalid_registration_details(self):
-        """Test for invalid user details"""
+        """Test invalid register  details."""
         user_data = {'username': 'janedoes',
                      'email': 'janedoe@janedoe.com'
                      }
         response = self.client.post(
-            '/auth/register',
-            data=user_data,
+            '/auth/register/',
+            data=json.dumps(user_data),
             content_type='application/json'
         )
         self.assertEqual(response.status_code, 400)
 
     def test_user_duplication_registration(self):
-        """Test if an existing user can register
-           again
-        """
+        """Test duplicate in registering."""
         rev = self.registration()
         self.assertEqual(201, rev.status_code)
 
@@ -74,44 +78,45 @@ class FlaskTest(unittest.TestCase):
                     'password': 'janedoe@123'
                     }
         response = self.client.post(
-            '/auth/register',
-            data=user_two,
+            '/auth/register/',
+            data=json.dumps(user_two),
             content_type='application/json'
         )
         self.assertEqual(response.status_code, 409)
 
     def test_null_registration_details(self):
-        """Test for null values in registration"""
+        """Test null values in registering."""
         user_data = {
             'username': '',
             'email': '',
             'password': ''
         }
         response = self.client.post(
-            '/auth/register',
-            data=user_data,
+            '/auth/register/',
+            data=json.dumps(user_data),
             content_type='application/json'
         )
         self.assertEqual(response.status_code, 400)
 
     def test_valid_login(self):
-        """Test valid login details"""
+        """Test for valid details in login."""
         res = self.registration()
-        self.assertEqual(200, res.status_code)
+        deta = (self.login().data)
+        self.assertEqual(201, res.status_code)
 
         user_details = {
             'email': self.user_data['email'],
             'password': self.user_data['password']
         }
         response = self.client.post(
-            '/auth/login',
-            data=user_details,
+            '/auth/login/',
+            data=json.dumps(user_details),
             content_type='application/json'
         )
         self.assertEqual(200, response.status_code)
 
     def test_invalid_login_password(self):
-        """Test invalid login details"""
+        """Test for invalid details in login."""
         rev = self.registration()
         self.assertEqual(201, rev.status_code)
 
@@ -120,14 +125,14 @@ class FlaskTest(unittest.TestCase):
             'password': '54321'
         }
         response = self.client.post(
-            '/auth/login',
-            data=user_details,
+            '/auth/login/',
+            data=json.dumps(user_details),
             content_type='application/json'
         )
         self.assertEqual(401, response.status_code)
 
     def test_invalid_login_email(self):
-        """Tests for invalid login email"""
+        """Tests for invalid login email."""
         rev = self.registration()
         self.assertEqual(201, rev.status_code)
 
@@ -136,43 +141,41 @@ class FlaskTest(unittest.TestCase):
             'password': self.user_data['password']
         }
         response = self.client.post(
-            '/auth/login',
-            data=user_details,
+            '/auth/login/',
+            data=json.dumps(user_details),
             content_type='application/json'
         )
         self.assertEqual(401, response.status_code)
 
     def test_reset_password(self):
-        """Test resetting password"""
-        self.user_data = {
-            'username': 'janedoe',
-            'email': 'janedoe@janedoe.com',
-            'password': 'janedoe@123'
-        }
-        self.user_data['password'] = 'doe@jone321'
+        """Test for password resetting."""
+        self.registration()
         response = self.client.post(
-            '/auth/reset-password',
-            data=self.user_data['email'],
+            '/auth/reset-password/',
+            data=json.dumps({"email": self.user_data['email']}),
             content_type='application/json'
         )
+        print("response", response.data)
         self.assertEqual(200, response.status_code)
 
     def test_user_login(self):
-        """Test a user can log in"""
+        """Test for user login."""
         res = self.registration()
         self.assertEqual(201, res.status_code)
 
         response = self.login()
         self.assertIn(
-            b'You were logged in', response.data)
+            b'You are logged in!', response.data)
 
     def test_user_logout(self):
-        """Test a user can logout"""
-        response = self.logout()
-        self.assertIn(
-            b'You were logged out', response.data)
+        """Test for user logout."""
+        self.registration()
+        token = json.loads(self.login().data.decode())['access_token']
+        response = self.logout(token)
+        self.assertEqual(
+            200, response.status_code)
 
     def tearDown(self):
-        """Tear down all initialized variables"""
+        """Tear down setup fixtures."""
         with self.app.app_context():
             db.drop_all()
