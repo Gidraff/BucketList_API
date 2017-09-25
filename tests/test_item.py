@@ -1,13 +1,14 @@
-"""Modules and packages to be imported"""
+"""Modules test case for item."""
 import unittest
+import json
 from app import db, create_app
 
 
-class ActivityTestCase(unittest.TestCase):
-    """Class that contains all the test cases"""
+class itemTestCase(unittest.TestCase):
+    """Class that contains all the test cases."""
 
     def setUp(self):
-        """Test cases fixture"""
+        """Test cases fixture."""
         self.app = create_app('testing')
         self.client = self.app.test_client()
         # user
@@ -21,118 +22,151 @@ class ActivityTestCase(unittest.TestCase):
             'title': 'Travel',
             'description': 'Travel to middle east'
         }
-        # activity
-        self.activity = {
-            'activity': 'learn different culture'
+        # item
+        self.item = {
+            'item': 'learn different culture',
+            "done": True
         }
 
         with self.app.app_context():
-            """Initialized all database"""
+            """Initialize  database."""
             db.create_all()
 
     def register(self):
-        """Register a user"""
-        response = self.client().post(
+        """Register a user."""
+        self.client.post(
             '/auth/register/',
-            data=self.user,
+            data=json.dumps(self.user),
             content_type='application/json')
 
     def login(self):
-        """logins a user"""
-        return self.client.post(
-            '/auth/login',
-            data=self.user,
+        """Login a user."""
+        response = self.client.post(
+            '/auth/login/',
+            data=json.dumps(self.user),
             content_type='application/json')
+        return response
 
     def test_create_bucketlist(self):
-        """Creates bucketlist"""
+        """Test bucketlist creation."""
+        self.register()
+        token = json.loads(self.login().data)
         response = self.client.post(
             '/bucketlists/',
-            data=self.bucketlist,
-            content_type='application/json')
+            data=json.dumps(self.bucketlist),
+            content_type='application/json',
+            headers={"Authorization": token['access_token']})
+        self.assertEqual(201, response.status_code)
     # post
 
-    def test_activity_was_be_created(self):
-        """Test if an activity was created"""
+    def test_item_was_be_created(self):
+        """Test item creation."""
+        self.register()
+        token = json.loads(self.login().data)
         res = self.client.post(
             '/bucketlists/',
-            data=self.bucketlist,
-            content_type='application/json')
-        self.assertEqual(201, res.status_code)
+            data=json.dumps(self.bucketlist),
+            content_type='application/json',
+            headers={'Authorization': token['access_token']})
 
-        # test for activity creation
+        # test for item creation
         res = self.client.post(
-            '/bucketlists/1/activities',
-            data=self.activity,
-            content_type='application/json')
+            '/bucketlists/1/items/',
+            data=json.dumps(self.item),
+            content_type='application/json',
+            headers={'Authorization': token['access_token']})
+        print("asdfghjk", res.data.decode())
         self.assertEqual(201, res.status_code)
 
-    def test_activity_exist(self):
-        """Test if an activity can be retreived"""
+    def test_item_exist(self):
+        """Test get item by id."""
+        self.register()
+        token = json.loads(self.login().data)
         res = self.client.post(
             '/bucketlists/',
-            data=self.bucketlist,
-            content_type='application/json')
+            data=json.dumps(self.bucketlist),
+            content_type='application/json',
+            headers={'Authorization': token['access_token']})
         self.assertEqual(201, res.status_code)
 
         result = self.client.post(
-            '/bucketlists/1/activities',
-            data=self.activity,
-            content_type='application/json')
+            '/bucketlists/1/items/',
+            data=json.dumps(self.item),
+            content_type='application/json',
+            headers={'Authorization': token['access_token']})
         self.assertEqual(201, result.status_code)
 
         rev = self.client.get(
-            '/bucketlists/1/activities/1')
-        self.assertIn(
-            'learn different culture', rev.data)
+            '/bucketlists/1/items/',
+            headers={'Authorization': token['access_token']})
+        self.assertEqual(200, rev.status_code)
 
     # put
-    def test_activity_can_be_edited(self):
-        """Test if an activity can be edited"""
+    def test_item_can_be_edited(self):
+        """Test  item editing."""
+        self.register()
+        token = json.loads(self.login().data)
         res = self.client.post(
             '/bucketlists/',
-            data=self.bucketlist,
-            content_type='application/json')
+            data=json.dumps(self.bucketlist),
+            content_type='application/json',
+            headers={'Authorization': token['access_token']})
         self.assertEqual(201, res.status_code)
 
         result = self.client.post(
-            '/bucketlists/1/activities',
-            data=self.activity,
-            content_type='application/json')
+            '/bucketlists/1/items/',
+            data=json.dumps(self.item),
+            content_type='application/json',
+            headers={'Authorization': token['access_token']})
         self.assertEqual(201, result.status_code)
 
         rev = self.client.put(
-            '/bucketlists/1/activities/1', data={
-                'title': 'learn ways of asians'
-            }, content_type='application/json')
-        self.assertEqual(200, rev.status_code)
+            '/bucketlists/1/items/1/',
+            data=json.dumps({
+                'item': 'learn ways of asians',
+                "done": False}),
+            content_type='application/json',
+            headers={'Authorization': token['access_token']})
+        print("++=======", rev.data.decode())
 
         result = self.client.get(
-            '/bucketlists/1/activities/1')
-        self.assertIn(
-            'learn ways of asians', result.data)
+            '/bucketlists/1/items/1/',
+            headers={'Authorization': token['access_token']},
+            content_type='application/json')
+        self.assertIn('learn ways of asians', str(result.data))
 
-    def test_delete_activity(self):
-        """Test if an activity can be reviewed"""
+    def test_delete_item(self):
+        """Test item  deletion."""
+        self.register()
+        token = json.loads(self.login().data)
         result = self.client.post(
             '/bucketlists/',
-            data=self.bucketlist,
-            content_type='application/json')
+            data=json.dumps(self.bucketlist),
+            content_type='application/json',
+            headers={'Authorization': token["access_token"]})
+
         res = self.client.post(
-            '/bucketlists/1/activities', data={
-                'activity': 'learn japaness'
-            }, content_type='application/json')
+            '/bucketlists/1/items/',
+            data=json.dumps({
+                'item': 'learn japaness',
+                "done": False}),
+            content_type='application/json',
+            headers={"Authorization": token["access_token"]})
         self.assertEqual(201, res.status_code)
 
         rev = self.client.delete(
-            '/bucketlists/1/activities/1')
+            '/bucketlists/1/items/1/',
+            headers={"Authorization": token['access_token']},
+            content_type='application/json')
+        self.assertEqual(200, rev.status_code)
 
-        result = self.client.get('/bucketlists/1/activities/1')
+        result = self.client.get(
+            '/bucketlists/1/items/1/',
+            headers={"Authorization": token['access_token']})
         self.assertEqual(404, result.status_code)
 
     def tearDown(self):
-        """Tear down variables initialized
-        """
+        """Tear down setup fixtures."""
         with self.app.app_context():
             db.session.remove()
             db.drop_all()
