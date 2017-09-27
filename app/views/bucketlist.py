@@ -17,20 +17,32 @@ class BucketListView(MethodView):
         bucket_data = request.get_json()
         title = bucket_data.get("title")
         description = bucket_data.get("description")
-        if isinstance(title, int):
+
+        if "title" not in bucket_data:
+            message = {"error": "Title field cannot be empty"}
+            return jsonify(message), 400
+        if title and isinstance(title, int):
             return jsonify({"error": "Title cannot be a integer"}), 400
-        if title.strip():
+        if title and title.strip():
             if Bucketlist.exists(user_id, title.strip(" ")):
                 return jsonify({"error": "Bucketlist already exists."}), 409
-            if re.match(r'.*[\%\$\^\*\@\!\?\(\)\:\;\'\"\{\}\[\]].*', title):
+            if title and re.match(
+                    r'.*[\%\$\^\*\@\!\?\(\)\:\;\'\"\{\}\[\]].*', title):
                 return jsonify({
                         "error": "Invalid, remove  special characters"}), 400
-            if len(title.strip()) > 70:
+            if title and len(title.strip()) < 1:
+                return jsonify({"error": "Title length too shot"}), 400
+            if title and len(title.strip()) > 70:
                 return jsonify({"error": "Invalid clength for title"}), 400
-            if re.match(
+            if description and not isinstance(description, str):
+                return jsonify({
+                    "error": "Invalid description cannot be an Integer"}), 400
+            if description and re.match(
                     r'.*[\%\$\^\*\@\!\?\(\)\:\;\'\"\{\}\[\]].*', description):
-                return jsonify({"error": "Title has special characters"}), 400
-            elif len(description.strip()) > 300:
+                return jsonify({
+                    "error": "descrition has special characters"}), 400
+            elif description and len(description) < 1 and\
+                    len(description.strip()) > 300:
                 return jsonify({"error": "description too long.Max 300"}), 400
             new_bucketlist = Bucketlist(title=title,
                                         description=description,
@@ -55,44 +67,81 @@ class BucketListView(MethodView):
             except TypeError as e:
                 return jsonify({"error": "limit and page must be int"}), 400
             q = request.args.get("q", type=str)
-            limit = 5 if int(limit) > 5 else int(limit)
+            if int(limit) > 5:
+                limit = 5
+            else:
+                limit = int(limit)
+            # limit = 5 if int(limit) > 5 else int(limit)
             if q:
                 bucketlists = Bucketlist.query.filter(
                     Bucketlist.title.ilike("%" + q + "%")).filter_by(
-                        created_by=user_id)
-                bucketlist_search = [{
-                    "id": bucketlist.id,
-                    "title": bucketlist.title,
-                    "description": bucketlist.description,
-                    "date_created": bucketlist.date_created,
-                    "created_by": bucketlist.created_by
-                } for bucketlist in bucketlists]
-                return jsonify(bucketlist_search)
+                        created_by=user_id).paginate(int(page), int(limit))
+                prev_page = ''
+                next_page = ''
+                pages = bucketlists.pages
+                if bucketlists.has_next:
+                    next_page = '/bucketlists/?limit={}&page{}'.format(
+                        limit, bucketlists.next_num)
+                if bucketlists.has_prev:
+                    prev_page = '/bucketlists/?limit={}&page{}'.format(
+                        limit, bucketlists.prev_num)
+                results = []
+                for bucketlist in bucketlists.items:
+                    items = bucketlist.items[:4]
+                    items = [
+                        {
+                            "item": item.item,
+                            "done": item.done,
+                            "id": item.id
+                        } for item in items
+                    ]
+                    if len(items) == 0:
+                        items = False
+                    bucketlist_search = {
+                        "id": bucketlist.id,
+                        "title": bucketlist.title,
+                        "description": bucketlist.description,
+                        "items": items,
+                        "date_created": bucketlist.date_created,
+                        "created_by": bucketlist.created_by}
+                    results.append(bucketlist_search)
+                return jsonify(
+                            results=results,
+                            next_page=next_page,
+                            prev_page=prev_page,
+                            pages=pages)
 
             bucketlists = Bucketlist.query.filter_by(
                 created_by=user_id
-            ).paginate(int(page), int(limit))
+            ).paginate(int(page), int(limit), False)
 
             next_page = ''
             prev_page = ''
             pages = bucketlists.pages
             if bucketlists.has_next:
-                next_page = 'http://localhost:5000' +\
-                    '/bucketlists/?limit=' + str(limit) +\
-                    '&page=' + str(page + 1)
+                next_page = '/bucketlists/?limit={}&page{}'.format(
+                    limit, bucketlists.next_num)
 
             if bucketlists.has_prev:
-                prev_page = 'http://localhost:5000' +\
-                    '/bucketlists/?limit=' + str(limit) +\
-                    '&page=' + str(page - 1)
-
+                prev_page = '/bucketlists/?limit={}&page{}'.format(
+                    limit, bucketlists.prev_num)
             results = []
             for bucketlist in bucketlists.items:
+                items = bucketlist.items[:4]
+                items = [
+                    {
+                        "item": item.item,
+                        "done": item.done,
+                        "id": item.id
+                    } for item in items]
+                if len(items) == 0:
+                    items = False
                 response = {
                     "id": bucketlist.id,
                     "title": bucketlist.title,
                     "description": bucketlist.description,
                     "date_created": bucketlist.date_created,
+                    "items": items,
                     "created_by": bucketlist.created_by}
                 results.append(response)
             if len(results) == 0:
@@ -122,31 +171,43 @@ class BucketListView(MethodView):
             id=id, created_by=user_id).first()
         if not bucketlist:
             return jsonify({"error": "No bucketlist matching id passed"}), 404
+        if bucketlist:
+            data = request.get_json()
+            title = None
+            description = None
 
-        data = request.get_json()
-        title = data.get("title")
-        description = data.get("description")
+        if "title" in data:
+            title = data.get("title")
+        if "description" in data:
+            description = data.get("description")
 
-        if not title.strip() or type(title) == int:
-            return jsonify({"message": "Invalid title"})
-        if title.strip():
-            if not Bucketlist.exists(user_id, title):
-                bucketlist.title = title
-        if re.match(r'.*[\%\$\^\*\@\!\?\(\)\:\;\'\"\{\}\[\]].*', title):
-                message = {"error": "special characters not allowed"}
-                return jsonify(message), 400
-        if len(title.strip()) < 1 or len(title.strip()) > 70:
-            return jsonify({"Error": "Invalid length for title"}), 400
-        if description.strip() and\
-                type(description) is int:
-                bucketlist.description = bucketlist.description
-        if re.match(r'.*[\%\$\^\*\@\!\?\(\)\:\;\'\"\{\}\[\]].*', description):
+        if title and not isinstance(title, str):
+            return jsonify({
+                "message": "Invalid title.It cannot be empty or Integer"}), 400
+        if title and re.match(
+                r'.*[\%\$\^\*\@\!\?\(\)\:\;\'\"\{\}\[\]].*', title):
+            message = {"error": "special characters not allowed"}
+            return jsonify(message), 400
+        if title and len(title.strip()) < 1 and len(title.strip()) > 70:
+            return jsonify({"error": "Invalid length for title or empty"}), 400
+        if description and isinstance(description, int):
+            return jsonify({"error": "description cannot be an Integer"}), 400
+        if description and not description.strip():
+            return jsonify(
+                    {"error": "Description cannot be empty or None"}), 400
+        if description and not isinstance(description, str):
+            message = {
+                "error": "Invalid description.It cannot be integer or none"}
+            return jsonify(message), 400
+        if description and re.match(
+                r'.*[\%\$\^\*\@\!\?\(\)\:\;\'\"\{\}\[\]].*', description):
                 return jsonify({
                     "error": "special characters not allowed"}), 400
-        if len(description.strip()) > 300:
+        if description and len(description.strip()) > 300:
             return jsonify({"error": "Invalid length for description"}), 400
-        elif isinstance(description, str) and\
-                description.strip():
+        if title and isinstance(title, str):
+            bucketlist.title = title
+        if description and isinstance(description, str):
             bucketlist.description = description
         bucketlist.save()
         responseObject = {
