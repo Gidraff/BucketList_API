@@ -67,7 +67,10 @@ class ItemAPI(MethodView):
                     "error": "Something happened.Please check page or limit"}
                     ), 400
             q = request.args.get("q", type=str)
-            limit = 5 if int(limit) > 5 else int(limit)
+            if int(limit) > 5:
+                limit = 5
+            else:
+                limit = 2
             if q:
                 bucketlist = Bucketlist.query.filter_by(
                     id=id, created_by=user_id).first()
@@ -76,7 +79,7 @@ class ItemAPI(MethodView):
                         {"message": "No bucketlist available"}), 404
                 items = Item.query.filter(
                     Item.item.ilike("%" + q + "%")).filter_by(
-                        bucketlist_id=id)
+                        bucketlist_id=id).paginate(int(page), int(limit))
                 if items:
                     search_items = [{
                         "bucketlist_id": item.bucketlist_id,
@@ -84,7 +87,7 @@ class ItemAPI(MethodView):
                         "item_name": item.item,
                         "date_created": item.date_created,
                         "done": item.done
-                    } for item in items]
+                    } for item in items.items]
                     return jsonify(search_items), 200
                 return jsonify({"error": "No match found"}), 404
             bucketlist = Bucketlist.query.filter_by(
@@ -98,16 +101,11 @@ class ItemAPI(MethodView):
             prev_page = ''
             pages = items.pages
             if items.has_next:
-                next_page = 'http://localhost:5000' +\
-                    '/bucketlists/{}/items/?=limit'.format(id) +\
-                    str(limit) +\
-                    '&page=' + str(page - 1)
+                next_page = '/bucketlists/{}/items/?limit={}&page={}'.format(
+                        id, limit, items.next_num)
             if items.has_prev:
-                prev_page = 'http://localhost:5000' +\
-                    '/bucketlists/{}/items/?=limit'.format(id) +\
-                    str(limit) +\
-                    '&page=' + str(page - 1)
-
+                prev_page = '/bucketlists/{}/items/?limit={}&page={}'.format(
+                        id, limit, items.prev_num)
             results = [{
                 "bucketlist_id": item.bucketlist_id,
                 "id": item.id,
@@ -159,7 +157,8 @@ class ItemAPI(MethodView):
                 return jsonify({"error": "No item matching that Id"}), 400
             item = Item.query.filter_by(
                 id=item_id, bucketlist_id=id).first()
-
+            if item_name and not isinstance(item_name, str):
+                return jsonify({"error": "Item cannot be an integer"}), 400
             if item_name and not item_name.strip() and\
                     not isinstance(item_name, str):
                 return jsonify({"error": "Invalid item name"}), 404
