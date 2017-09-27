@@ -19,8 +19,10 @@ env:
 
 before_script:
   - psql -c "CREATE DATABASE test_db;" -U postgres
-after_success:
-  coveralls
+
 # command to run tests
 script: 
   - nosetests  --with-coverage --cover-package=app
+
+after_success:
+  - coveralls
