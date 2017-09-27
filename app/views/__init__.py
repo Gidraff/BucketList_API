@@ -1,1 +1,1 @@
-"""This is a init file it."""
+"""This is initializes the package for imports."""
