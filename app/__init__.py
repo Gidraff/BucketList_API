@@ -6,7 +6,7 @@ from .views.users import users_blueprint
 from .views.bucketlist import bucketlist_blueprint
 from .views.bucketlist_item import item_blueprint
 from .views.errors import bad_request, page_not_found
-# from .views.errors import internal_server_error
+from .views.errors import internal_server_error
 from .models import db
 
 
@@ -22,6 +22,6 @@ def create_app(config_name):
     app.register_blueprint(item_blueprint)
     app.register_error_handler(400, bad_request)
     app.register_error_handler(404, page_not_found)
-    # app.register_error_handler(Exception, internal_server_error)
+    app.register_error_handler(Exception, internal_server_error)
     db.init_app(app)
     return app
