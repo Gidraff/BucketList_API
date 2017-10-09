@@ -7,12 +7,14 @@ from .views.bucketlist import bucketlist_blueprint
 from .views.bucketlist_item import item_blueprint
 from .views.errors import bad_request, page_not_found
 from .views.errors import internal_server_error
+from flask_cors import CORS
 from .models import db
 
 
 def create_app(config_name):
     """Create flask api App."""
     app = FlaskAPI(__name__, instance_relative_config=True)
+    CORS(app)
     app.url_map.strict_slashes = False
     app.config.from_object(app_config[config_name])
     app.config.from_pyfile('config.py')
