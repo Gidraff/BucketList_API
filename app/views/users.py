@@ -29,10 +29,10 @@ class RegistrationApiView(MethodView):
                     message = {"error": "username has special characters."}
                     return jsonify(message), 400
                 elif len(email) < 7:
-                    message = {"message": "email too short."}
+                    message = {"error": "email too short."}
                     return make_response(jsonify(message)), 400
                 elif len(password.strip()) < 7:
-                    message = {"message": "Invalid password.Try Again !"}
+                    message = {"error": "Invalid password.Try Again !"}
                     return make_response(jsonify(message)), 400
                 user = User.query.filter_by(email=email).first()
                 if not user:
@@ -40,18 +40,19 @@ class RegistrationApiView(MethodView):
                         user = User(username=username,
                                     email=email,
                                     password=password)
-                        # saves user
                         user.save()
+                        access_token = user.generate_token(user.id)
                         responseObject = {
-                            'message': 'You were successfully registered'}
+                            'message': 'You were successfully registered',
+                            'access_token': access_token.decode()}
                         return jsonify(responseObject), 201
                     except Exception as e:
-                        responseObject = {'message': 'user already exists'}
+                        responseObject = {'error': 'user already exists'}
                         return jsonify(responseObject), 500
                 responseObject = {
                     'error': 'User already exist please Log in.'}
                 return jsonify(responseObject), 409
-            return jsonify({"message": "Invalid username or email"}), 400
+            return jsonify({"error": "Invalid username or email"}), 400
         response = {"message": "Input fields cannot be empty"}
         return jsonify(response), 400
 
@@ -76,7 +77,7 @@ class LoginAPI(MethodView):
             except Exception as e:
                 responseObject = {'status': 'fail', 'message': str(e)}
                 return jsonify(responseObject), 400
-        responseObject = {'message': 'Invalid credentials or not registered!'}
+        responseObject = {'error': 'Invalid credentials or not registered!'}
         return jsonify(responseObject), 401
 
 
@@ -103,7 +104,7 @@ class LogOutAPI(MethodView):
             return make_response(jsonify(responseObject)), 401
         responseObject = {
             'status': 'fail',
-            'message': 'Please provide valid authentication token'}
+            'error': 'Please provide valid authentication token'}
         return make_response(jsonify(responseObject)), 403
 
 
@@ -125,7 +126,7 @@ class ResetPassword(MethodView):
                 "New password": new_password}
             return make_response(jsonify(responseObject)), 200
         else:
-            response = {"message": "Email does not exist"}
+            response = {"error": "Email does not exist"}
             return make_response(jsonify(response)), 401
 
 # Instantiate ActivityAPI blueprint

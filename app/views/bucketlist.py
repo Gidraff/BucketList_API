@@ -53,9 +53,10 @@ class BucketListView(MethodView):
                 "title": new_bucketlist.title,
                 "description": new_bucketlist.description,
                 "date_created": new_bucketlist.date_created,
-                "created_by": new_bucketlist.created_by}
+                "created_by": new_bucketlist.created_by,
+                "message": "created successfully!"}
             return jsonify(responseObject), 201
-        return jsonify({"message": "Title cannot be blank"}), 400
+        return jsonify({"error": "Title cannot be blank"}), 400
 
     @login_required
     def get(self, user_id, id=None):
@@ -67,11 +68,11 @@ class BucketListView(MethodView):
             except TypeError as e:
                 return jsonify({"error": "limit and page must be int"}), 400
             q = request.args.get("q", type=str)
-            if int(limit) > 5:
-                limit = 5
+            if int(limit) > 10:
+                limit = 10
             else:
                 limit = int(limit)
-            # limit = 5 if int(limit) > 5 else int(limit)
+            # limit = 20  if int(limit) > 20  else int(limit)
             if q:
                 bucketlists = Bucketlist.query.filter(
                     Bucketlist.title.ilike("%" + q + "%")).filter_by(
@@ -80,10 +81,10 @@ class BucketListView(MethodView):
                 next_page = ''
                 pages = bucketlists.pages
                 if bucketlists.has_next:
-                    next_page = '/bucketlists/?limit={}&page{}'.format(
+                    next_page = '/bucketlists/?limit={}&page={}'.format(
                         limit, bucketlists.next_num)
                 if bucketlists.has_prev:
-                    prev_page = '/bucketlists/?limit={}&page{}'.format(
+                    prev_page = '/bucketlists/?limit={}&page={}'.format(
                         limit, bucketlists.prev_num)
                 results = []
                 for bucketlist in bucketlists.items:
@@ -119,11 +120,11 @@ class BucketListView(MethodView):
             prev_page = ''
             pages = bucketlists.pages
             if bucketlists.has_next:
-                next_page = '/bucketlists/?limit={}&page{}'.format(
+                next_page = '/bucketlists/?limit={}&page={}'.format(
                     limit, bucketlists.next_num)
 
             if bucketlists.has_prev:
-                prev_page = '/bucketlists/?limit={}&page{}'.format(
+                prev_page = '/bucketlists/?limit={}&page={}'.format(
                     limit, bucketlists.prev_num)
             results = []
             for bucketlist in bucketlists.items:
@@ -145,7 +146,7 @@ class BucketListView(MethodView):
                     "created_by": bucketlist.created_by}
                 results.append(response)
             if len(results) == 0:
-                return jsonify({"message": "No bucketlists available"}), 400
+                return jsonify({"error": "No bucketlists available"}), 400
             return make_response(jsonify(
                                         buckets=results,
                                         next_page=next_page,
@@ -155,7 +156,7 @@ class BucketListView(MethodView):
         bucketlists = Bucketlist.query.filter_by(
             id=id, created_by=user_id).first()
         if not bucketlists:
-            return jsonify({"message": "Resource not found"}), 404
+            return jsonify({"error": "Resource not found"}), 404
         bucketlist_detail = {
             "id": bucketlists.id,
             "title": bucketlists.title,
@@ -183,7 +184,7 @@ class BucketListView(MethodView):
 
         if title and not isinstance(title, str):
             return jsonify({
-                "message": "Invalid title.It cannot be empty or Integer"}), 400
+                "error": "Invalid title.It cannot be empty or Integer"}), 400
         if title and re.match(
                 r'.*[\%\$\^\*\@\!\?\(\)\:\;\'\"\{\}\[\]].*', title):
             message = {"error": "special characters not allowed"}
@@ -211,6 +212,7 @@ class BucketListView(MethodView):
             bucketlist.description = description
         bucketlist.save()
         responseObject = {
+            "id": bucketlist.id,
             "title": bucketlist.title,
             "description": bucketlist.description,
             "date_created": bucketlist.date_created,
@@ -228,7 +230,11 @@ class BucketListView(MethodView):
         if not bucketlist:
             return jsonify({"error": "No bucketlist matching that id"}), 404
         if bucketlist.delete():
-            return jsonify({"message": "Bucketlist was deleted"}), 200
+            message = {
+                "message": "Bucketlist was deleted",
+                "id": id
+            }
+            return jsonify(message), 200
         return 'internal server error', 500
 
 

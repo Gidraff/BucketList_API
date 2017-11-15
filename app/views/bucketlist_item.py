@@ -18,7 +18,7 @@ class ItemAPI(MethodView):
         bucketlist = Bucketlist.query.filter_by(
             id=id, created_by=user_id).first()
         if not bucketlist:
-            return jsonify({"message": "No such buckeltlist"}), 404
+            return jsonify({"error": "No such buckeltlist"}), 404
         item_data = request.get_json()
         item_name = item_data.get("item")
         done_status = item_data.get("done")
@@ -33,7 +33,7 @@ class ItemAPI(MethodView):
                 item=item_name,
                 bucketlist_id=id).first()
             if existing_item:
-                return jsonify({"message": "item already exists"}), 409
+                return jsonify({"error": "item already exists"}), 409
             if re.match(
                     r'.*[\%\$\^\*\@\!\?\(\)\:\;\'\"\{\}\[\]].*', item_name):
                 return jsonify({
@@ -47,7 +47,7 @@ class ItemAPI(MethodView):
             item_detail = {
                 "id": item.id,
                 "bucketlist_id": item.bucketlist_id,
-                "item": item.item,
+                "item_name": item.item,
                 "date_created": item.date_created,
                 "date_modified": item.date_modified,
                 "done": item.done
@@ -67,8 +67,8 @@ class ItemAPI(MethodView):
                     "error": "Something happened.Please check page or limit"}
                     ), 400
             q = request.args.get("q", type=str)
-            if int(limit) > 5:
-                limit = 5
+            if int(limit) > 10:
+                limit = 10
             else:
                 limit = 2
             if q:
@@ -181,7 +181,12 @@ class ItemAPI(MethodView):
                 item.done = item_status
             item.save()
             return jsonify({
-                "item": item.item,
+                "id": item_id,
+                "bucketlist_id": item.bucketlist_id,
+                "item_name": item.item,
+                "item_name": item.item,
+                "date_created": item.date_created,
+                "date_modified": item.date_modified,
                 "done": item.done,
                 "message": "item Updated !"
             }), 200
@@ -200,6 +205,7 @@ class ItemAPI(MethodView):
             if item:
                 item.delete()
                 return jsonify({
+                    "id": item_id,
                     "message": "Item was successfully deleted!"}), 200
             return jsonify({"error": "No item matching that id"}), 404
         return jsonify({"error": "No item for this bucketlist!"}), 404
